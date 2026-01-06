@@ -1,7 +1,11 @@
 class AppError extends Error{
-    constructor(errorType, message, statusCode, ){
-        super(message)
+    constructor(errorType, errorMessage, errorCode, statusCode, statusText, fieldError){
+        super(errorMessage)
         this.errorType = errorType || 'AppError',
-        this.statusCode = statusCode
+        this.errorCode = errorCode,
+        this.statusCode = statusCode,
+        this.statusText = statusText,
+        this.fieldError = fieldError,
+        Error.captureStackTrace(this, this.constructor)
     }
 }
