@@ -1,6 +1,7 @@
 const user = require ('../models/User'); 
 const bcrypt = require('bcryptjs');
-const jwt = require ('jsonwebtoken')
+const jwt = require ('jsonwebtoken');
+const AppError = require('../util/AppError');
 
 const register = async (req, res, next) => {
     try {
@@ -19,6 +20,14 @@ const register = async (req, res, next) => {
             userDetails: User
         });
     } catch (error) {
+        throw new AppError(
+            'DatabaseError',
+            'Failed to register user',
+            'USER_REGISTRATION_FAILED',
+            500,
+            'Internal Server Error',
+            error
+        );
         // res.json({
         //     error: error.message
         // });
