@@ -21,17 +21,12 @@ const register = async (req, res, next) => {
         });
     } catch (error) {
         throw new AppError(
-            'DatabaseError',
-            'Failed to register user',
-            'USER_REGISTRATION_FAILED',
+            'TestError',
+            'TEST_ERROR',
             500,
             'Internal Server Error',
             error
         );
-        // res.json({
-        //     error: error.message
-        // });
-        console.log(error);
     }
 };
 
