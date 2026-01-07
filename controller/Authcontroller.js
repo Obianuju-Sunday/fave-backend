@@ -1,51 +1,59 @@
-const user = require ('../models/User'); 
+const user = require('../models/User');
 const bcrypt = require('bcryptjs');
-const jwt = require ('jsonwebtoken');
-const AppError = require('../util/AppError');
+const jwt = require('jsonwebtoken');
+const ValidationError = require('../errors/ValidationError');
 
 const register = async (req, res, next) => {
 
-    requiredFields = ['name', 'email', 'password'];
-    optionalFields = ['phone'];
+    const { name, email, phone, password } = req.body;
 
-    fieldError = [];
-    requiredFields.forEach(field => {
-        value = req.body[field];
-        if (!value) {
-            fieldError.push(field);
-        }
+
+    // Validate input fields
+    if (!name || !email || !phone || !password) {
+        throw new ValidationError('All fields are required', 'MISSING_FIELDS');
+    }
+
+    if (password.length < 6) {
+        throw new ValidationError('Password must be at least 6 characters long', 'WEAK_PASSWORD');
+    }
+
+    if (!/\S+@\S+\.\S+/.test(email)) {
+        throw new ValidationError('Invalid email format', 'INVALID_EMAIL');
+    }
+
+    if (!/^\d{10}$/.test(phone)) {
+        throw new ValidationError('Phone number must be 10 digits', 'INVALID_PHONE');
+    }
+
+    if (typeof name !== 'string' || typeof email !== 'string' || typeof phone !== 'string' || typeof password !== 'string') {
+        throw new ValidationError('Invalid data types provided. All fields must be strings', 'INVALID_DATA_TYPE');
+    }
+
+    // Hash the password before saving
+    const hashedPass = await bcrypt.hash(req.body.password, 10);
+
+    // Create new user
+    const User = new user({
+        name: req.body.name,
+        email: req.body.email,
+        phone: req.body.phone,
+        password: hashedPass
     });
-    if (fieldError.length > 0) {
-        return next(new AppError(
-            'MISSING_REQUIRED_FIELDS',
-            'ValidationError',
-            `The following required fields are missing: ${fieldError.join(', ')}`,
-            400,
-            'Bad Request',
-            fieldError
-        ));
+
+    // check if user already exists
+    const existingUser = await user.findOne({ email: User.email });
+    if (existingUser) {
+        throw new ValidationError('User with this email already exists', 'USER_EXISTS');
     }
 
-    try {
-        const hashedPass = await bcrypt.hash(req.body.password, 10);
-    
-        
-        let User = new user({
-            name: req.body.name,
-            email: req.body.email,
-            phone: req.body.phone,
-            password: hashedPass
-        });
+    // If user doesn't exist, save user to database
+    await User.save();
 
-        await User.save();
-        
-        res.status(201).json({
-            message: 'User Added Successfully!',
-            userDetails: User
-        });
-    } catch (error) {
-        next(error);
-    }
+    // Respond with success message
+    res.status(201).json({
+        message: 'User Added Successfully!',
+        userDetails: User
+    });
 };
 
 
