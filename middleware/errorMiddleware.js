@@ -7,23 +7,17 @@ const errorMiddleware = (err, req, res, next) => {
 
     if (!(error instanceof AppError)) {
         error = new AppError({
-            errorCode: "INTERNAL_SERVER_ERROR",
             errorType: "AppError",
             errorMessage: error.message,
-            statusCode: 500,
-            statusText: "Internal Server Error",
-            fieldError: error.fieldError || null
+            statusCode: 500
         });
     }
 
     const response = {
         success: false,
-        errorCode: error.errorCode || "INTERNAL_SERVER_ERROR",
         errorType: error.errorType || "AppError",
         errorMessage: error.message || "Internal Server Error",
-        statusCode: error.statusCode || 500,
-        statusText: error.statusText || "Internal Server Error",
-        fieldError: error.fieldError || null
+        statusCode: error.statusCode || 500
     };
 
     res.status(error.statusCode || 500).json(response);
