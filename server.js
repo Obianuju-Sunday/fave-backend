@@ -5,7 +5,7 @@ const mongoose = require('mongoose')
 const morgan = require('morgan')
 const bodyParser = require('body-parser')
 const dotenv = require('dotenv')
-const errorMiddleware = require('./middleware/errorMiddleware')
+const errorHandler = require('./middleware/errorHandler')
 const AuthRoute = require('./routes/auth') 
 
 // CONFIGURATION
@@ -29,17 +29,15 @@ const app = express()
 app.use(morgan('dev'))
 app.use(bodyParser.urlencoded({extended:true}))
 app.use(bodyParser.json())
-app.use(errorMiddleware)
+app.use(errorHandler)
 
 // ROUTES
 app.use('/api/auth', AuthRoute)
 
 // HANDLE UNHANDLED ROUTES
 app.all('*', (req, res, next) => {
-    res.status(404).json({
-        status: 'fail',
-        message: `Can't find ${req.originalUrl} on this server!`
-    });
+    const AppError = require('./util/AppError');
+    next(new AppError('AppError', 404, `Can't find ${req.originalUrl} on this server!`));
 })
 
 // SERVER
