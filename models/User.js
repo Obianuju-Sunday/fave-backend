@@ -16,11 +16,11 @@ const userSchema = new Schema({
         unique: true,
         lowercase: true,
         trim: true,
-        index: true 
+        index: true
     },
     phone: {
         type: String,
-        sparse: true, 
+        sparse: true,
         unique: true
     },
     password: {
@@ -32,8 +32,8 @@ const userSchema = new Schema({
         type: Boolean,
         default: false
     }
-}, { 
-    timestamps: true 
+}, {
+    timestamps: true
 });
 
 // Index for email queries

@@ -1,18 +1,23 @@
 
-// controllers/authController.js
-const User = require('../models/User'); 
+// controllers/AuthController.js
+
+const User = require('../models/User');
 const bcrypt = require('bcryptjs');
-const validator = require('validator'); 
+const validator = require('validator');
 const ValidationError = require('../errors/ValidationError');
 
 const register = async (req, res, next) => {
+
     try {
         const { name, email, phone, password } = req.body;
 
+
         // Validate input fields
         if (!name || !email || !password) {
+            console.log('Required fields absent');
             throw new ValidationError('Name, email, and password are required');
         }
+
 
         // Data Type validation
         if (typeof name !== 'string' || typeof email !== 'string' || typeof password !== 'string') {
@@ -28,6 +33,7 @@ const register = async (req, res, next) => {
             throw new ValidationError('Invalid email format');
         }
 
+
         // Password validation
         if (!validator.isStrongPassword(password, {
             minLength: 8,
@@ -36,8 +42,11 @@ const register = async (req, res, next) => {
             minNumbers: 1,
             minSymbols: 1
         })) {
+            console.log('Password validation FAILED');
+
             throw new ValidationError('Password must be at least 8 characters with uppercase, lowercase, number, and symbol');
         }
+
 
         // Phone validation (if provided)
         if (phone) {
@@ -49,7 +58,7 @@ const register = async (req, res, next) => {
         // Check if user exists (prevent email enumeration)
         const existingUser = await User.findOne({ email: sanitizedEmail });
         if (existingUser) {
-            throw new ValidationError('Registration failed'); 
+            throw new ValidationError('Registration failed');
         }
 
         // Hash password
@@ -65,10 +74,14 @@ const register = async (req, res, next) => {
 
         await newUser.save();
 
-        res.status(201).json({
+        return res.status(201).json({
             message: 'User registered successfully'
         });
+
     } catch (err) {
+
+        console.log('ERROR CAUGHT:', err.message);
+        console.log('Passing to error handler');
         next(err);
     }
 };
