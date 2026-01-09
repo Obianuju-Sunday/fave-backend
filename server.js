@@ -31,6 +31,18 @@ app.use(morgan('dev'))
 app.use(express.json())
 app.use(express.urlencoded({extended:true}))
 
+// REQUEST LOGGER FOR DEBUGGING
+// app.use((req, res, next) => {
+//     console.log('=================================');
+//     console.log('📨 Incoming Request:');
+//     console.log('Method:', req.method);
+//     console.log('URL:', req.url);
+//     console.log('Headers:', req.headers);
+//     console.log('Body:', req.body);
+//     console.log('=================================');
+//     next();
+// });
+
 // ROUTES
 app.use('/api/auth', AuthRoute)
  

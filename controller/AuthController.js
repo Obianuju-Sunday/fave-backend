@@ -10,8 +10,7 @@ const register = async (req, res, next) => {
 
     try {
         const { name, email, phone, password } = req.body;
-
-
+        
         // Validate input fields
         if (!name || !email || !password) {
             console.log('Required fields absent');
@@ -80,8 +79,6 @@ const register = async (req, res, next) => {
 
     } catch (err) {
 
-        console.log('ERROR CAUGHT:', err.message);
-        console.log('Passing to error handler');
         next(err);
     }
 };
