@@ -1,4 +1,4 @@
-// AppError.js
+// util/AppError.js
 
 class AppError extends Error {
     constructor(errorType, statusCode, errorMessage ) {

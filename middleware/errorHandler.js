@@ -3,6 +3,10 @@
 const AppError = require("../util/AppError");
 
 const errorHandler = (err, req, res, next) => {
+
+    console.error('❌ Error caught:', err);
+        console.log('APP ERROR CLASS:', AppError); // should be [class AppError]
+
     let error = err;
 
     if (!(error instanceof AppError)) {

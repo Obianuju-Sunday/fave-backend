@@ -8,6 +8,7 @@ const morgan = require('morgan')
 const dotenv = require('dotenv')
 const errorHandler = require('./middleware/errorHandler')
 const AuthRoute = require('./routes/auth') 
+const AppError = require('./util/AppError')
 
 // CONFIGURATION
 dotenv.config()
