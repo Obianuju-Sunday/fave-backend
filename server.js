@@ -1,9 +1,10 @@
+// server.js
+
 
 // IMPORTS
 const express = require('express')
 const mongoose = require('mongoose')
 const morgan = require('morgan')
-const bodyParser = require('body-parser')
 const dotenv = require('dotenv')
 const errorHandler = require('./middleware/errorHandler')
 const AuthRoute = require('./routes/auth') 
@@ -27,18 +28,20 @@ db.on('error', (err) => {
 // MIDDLEWARES
 const app = express()
 app.use(morgan('dev'))
-app.use(bodyParser.urlencoded({extended:true}))
-app.use(bodyParser.json())
-app.use(errorHandler)
+app.use(express.json())
+app.use(express.urlencoded({extended:true}))
 
 // ROUTES
 app.use('/api/auth', AuthRoute)
-
+ 
 // HANDLE UNHANDLED ROUTES
 app.all('*', (req, res, next) => {
-    const AppError = require('./util/AppError');
     next(new AppError('AppError', 404, `Can't find ${req.originalUrl} on this server!`));
 })
+
+// GLOBAL ERROR HANDLING MIDDLEWARE
+app.use(errorHandler)
+
 
 // SERVER
 app.listen(process.env.PORT, () =>{

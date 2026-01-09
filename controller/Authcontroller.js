@@ -1,68 +1,76 @@
-const user = require('../models/User');
+
+// controllers/authController.js
+const User = require('../models/User'); 
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+const validator = require('validator'); 
 const ValidationError = require('../errors/ValidationError');
 
 const register = async (req, res, next) => {
-
     try {
         const { name, email, phone, password } = req.body;
 
-
         // Validate input fields
-        if (!name || !email || !phone || !password) {
-            throw new ValidationError('All fields are required', 'MISSING_FIELDS');
+        if (!name || !email || !password) {
+            throw new ValidationError('Name, email, and password are required');
         }
 
-        if (password.length < 6) {
-            throw new ValidationError('Password must be at least 6 characters long', 'WEAK_PASSWORD');
+        // Data Type validation
+        if (typeof name !== 'string' || typeof email !== 'string' || typeof password !== 'string') {
+            throw new ValidationError('Invalid data types provided. All fields must be strings');
         }
 
-        if (!/\S+@\S+\.\S+/.test(email)) {
-            throw new ValidationError('Invalid email format', 'INVALID_EMAIL');
+        // Sanitize inputs
+        const sanitizedEmail = validator.normalizeEmail(email);
+        const sanitizedName = validator.escape(name.trim());
+
+        // Email validation
+        if (!validator.isEmail(sanitizedEmail)) {
+            throw new ValidationError('Invalid email format');
         }
 
-        if (!/^\d{10}$/.test(phone)) {
-            throw new ValidationError('Phone number must be 10 digits', 'INVALID_PHONE');
+        // Password validation
+        if (!validator.isStrongPassword(password, {
+            minLength: 8,
+            minLowercase: 1,
+            minUppercase: 1,
+            minNumbers: 1,
+            minSymbols: 1
+        })) {
+            throw new ValidationError('Password must be at least 8 characters with uppercase, lowercase, number, and symbol');
         }
 
-        if (typeof name !== 'string' || typeof email !== 'string' || typeof phone !== 'string' || typeof password !== 'string') {
-            throw new ValidationError('Invalid data types provided. All fields must be strings', 'INVALID_DATA_TYPE');
+        // Phone validation (if provided)
+        if (phone) {
+            if (typeof phone !== 'string' || !/^\d{10,15}$/.test(phone)) {
+                throw new ValidationError('Phone number must be 10-15 digits');
+            }
         }
 
-        // Hash the password before saving
-        const hashedPass = await bcrypt.hash(req.body.password, 10);
+        // Check if user exists (prevent email enumeration)
+        const existingUser = await User.findOne({ email: sanitizedEmail });
+        if (existingUser) {
+            throw new ValidationError('Registration failed'); 
+        }
 
-        // Create new user
-        const User = new user({
-            name: req.body.name,
-            email: req.body.email,
-            phone: req.body.phone,
+        // Hash password
+        const hashedPass = await bcrypt.hash(password, 12);
+
+        // Create new user using sanitized/validated data
+        const newUser = new User({
+            name: sanitizedName,
+            email: sanitizedEmail,
+            phone: phone || undefined,
             password: hashedPass
         });
 
-        // check if user already exists
-        const existingUser = await user.findOne({ email: User.email });
-        if (existingUser) {
-            throw new ValidationError('User with this email already exists', 'USER_EXISTS');
-        }
+        await newUser.save();
 
-        // If user doesn't exist, save user to database
-        await User.save();
-
-        // Respond with success message
         res.status(201).json({
-            message: 'User Added Successfully!',
-            userDetails: User
+            message: 'User registered successfully'
         });
-    } catch (error) {
-        // Here I'm passing the error to the error handling middleware
-        next(error);
+    } catch (err) {
+        next(err);
     }
-
 };
 
-
-module.exports = {
-    register
-}  
+module.exports = register; 

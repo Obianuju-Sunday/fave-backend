@@ -1,43 +1,26 @@
 // middleware/errorMiddleware.js
 
 const AppError = require("../util/AppError");
-const ValidationError = require("../errors/ValidationError");
-const AuthError = require("../errors/AuthError");
 
 const errorHandler = (err, req, res, next) => {
-    const error = err;
-    console.error("Error:", error);
+    let error = err;
 
-    // Handle specific error types
-
-    if (error instanceof ValidationError) {
-        error = new AppError({
-            errorType: "ValidationError",
-            errorMessage: error.message,
-            statusCode: 400
-        });
-    } else if (error instanceof AuthError) {
-        error = new AppError({
-            errorType: "AuthError",
-            errorMessage: error.message,
-            statusCode: 401
-        });
-    } else if (!(error instanceof AppError)) {
-        error = new AppError({
-            errorType: "AppError",
-            errorMessage: error.message,
-            statusCode: 500
-        });
+    if (!(error instanceof AppError)) {
+        error = new AppError(
+            "AppError",
+            500,
+            error.message || 'An unexpected error occurred'
+        );
     }
 
     const response = {
         success: false,
-        errorType: error.errorType || "AppError",
-        errorMessage: error.message || "Internal Server Error",
-        statusCode: error.statusCode || 500
+        errorType: error.errorType,
+        errorMessage: error.message,
+        statusCode: error.statusCode
     };
 
-    res.status(error.statusCode || 500).json(response);
+    res.status(error.statusCode).json(response);
 };
 
 module.exports = errorHandler;
