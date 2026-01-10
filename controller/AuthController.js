@@ -5,6 +5,7 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const validator = require('validator');
 const ValidationError = require('../errors/ValidationError');
+const AuthError = require('../errors/AuthError');
 
 const register = async (req, res, next) => {
 
@@ -84,4 +85,60 @@ const register = async (req, res, next) => {
     }
 };
 
-module.exports = register; 
+const login = async (req, res, next) => {
+    try {
+        const { email, password } = req.body;
+
+        // Validate input fields
+        if (!email || !password) {
+            console.log('Required fields absent');
+            throw new ValidationError('Email and password are required');
+        }
+
+        // Data type validation
+        if (typeof email !== 'string' || typeof password !== 'string') {
+            throw new ValidationError('Invalid data types provided. Email and password must be strings');
+        }
+
+        // Sanitize email input 
+        const sanitizedEmail = validator.normalizeEmail(email);
+
+        // Email validation
+        if (!validator.isEmail(sanitizedEmail)) {
+            throw new ValidationError('Invalid email format');
+        }
+
+        // Find user by email
+        const user = await User.findOne({ email: sanitizedEmail }).select('+password');
+        if (!user) {
+            console.log('No user found with this email');
+            throw new AuthError('Invalid credentials');
+        }
+
+        // compare user password
+        const isPasswordMatch = await bcrypt.compare(password, user.password);
+        if (!isPasswordMatch) {
+            console.log('Incorrect password provided');
+            throw new AuthError('Invalid credentials');
+        }
+
+
+        const jwtToken = jwt.sign(
+            {
+                userId: user._id,
+                email: user.email
+            },
+            process.env.JWT_SECRET,
+            { 
+                expiresIn: process.env.JWT_EXPIRES_IN || '1h' 
+            }
+        );
+    } catch (err) {
+    next(err);
+}
+}
+
+module.exports = {
+    register,
+    login
+}; 

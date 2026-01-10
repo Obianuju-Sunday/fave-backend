@@ -2,16 +2,10 @@
 
 const express = require('express');
 const router = express.Router();
-const register = require('../controller/AuthController');
-const AppError = require('../util/AppError');
+const { register, login } = require('../controller/AuthController');
 
 
 router.post('/register', register);
-
-
-// // Handle unhandled routes
-// router.all('*', (req, res, next) => {
-//     next(new AppError('AppError', 404, `Can't find ${req.originalUrl} on this server!`));
-// });
+router.post('/login', login);
 
 module.exports = router;
