@@ -57,6 +57,7 @@ const register = async (req, res, next) => {
         // Check if user exists (prevent email enumeration)
         const existingUser = await User.findOne({ email: sanitizedEmail });
         if (existingUser) {
+            console.log('User with this email already exists');
             throw new ValidationError('Registration failed');
         }
 
