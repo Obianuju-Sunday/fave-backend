@@ -1,14 +1,20 @@
 // middleware/errorMiddleware.js
 
 const AppError = require("../util/AppError");
+const ValidationError = require("../errors/ValidationError");
 
 const errorHandler = (err, req, res, next) => {
 
-    console.error('❌ Error caught:', err);
-        console.log('APP ERROR CLASS:', AppError); // should be [class AppError]
-
     let error = err;
 
+    // Handle Mongoose Validation Errors
+
+    if (err.name === 'ValidationError') {
+        const message = Object.values(err.errors).map(e => e.message).join(', ');
+        error = new ValidationError(message, 400);
+    }
+
+    // Handle errors not instance of AppError
     if (!(error instanceof AppError)) {
         error = new AppError(
             "AppError",
