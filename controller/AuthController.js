@@ -15,7 +15,6 @@ const register = async (req, res, next) => {
 
         // Validate input fields
         if (!name || !email || !password) {
-            console.log('Required fields absent');
             throw new ValidationError('Name, email, and password are required');
         }
 
@@ -43,7 +42,9 @@ const register = async (req, res, next) => {
             minNumbers: 1,
             minSymbols: 1
         })) {
-            console.log('Password validation FAILED');
+            if (process.env.NODE_ENV === 'development') {
+                console.log('Password validation FAILED');
+            }
 
             throw new ValidationError('Password must be at least 8 characters with uppercase, lowercase, number, and symbol');
         }
@@ -59,7 +60,9 @@ const register = async (req, res, next) => {
         // Check if user exists (prevent email enumeration)
         const existingUser = await User.findOne({ email: sanitizedEmail });
         if (existingUser) {
-            console.log('User with this email already exists');
+            if (process.env.NODE_ENV === 'development') {
+                console.log('User with this email already exists');
+            }
             throw new ValidationError('Registration failed');
         }
 
@@ -94,7 +97,6 @@ const login = async (req, res, next) => {
 
         // Validate input fields
         if (!email || !password) {
-            console.log('Required fields absent');
             throw new ValidationError('Email and password are required');
         }
 
@@ -114,14 +116,18 @@ const login = async (req, res, next) => {
         // Find user by email in database
         const user = await User.findOne({ email: sanitizedEmail }).select('+password');
         if (!user) {
-            console.log('No user found with this email');
+            if (process.env.NODE_ENV === 'development') {
+                console.log('No user found with this email');
+            }
             throw new AuthError('Invalid credentials');
         }
 
         // compare user password
         const isPasswordMatch = await bcrypt.compare(password, user.password);
         if (!isPasswordMatch) {
-            console.log('Incorrect password provided');
+            if (process.env.NODE_ENV === 'development') {
+                console.log('Incorrect password provided');
+            }
             throw new AuthError('Invalid credentials');
         }
 
