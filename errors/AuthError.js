@@ -1,7 +1,7 @@
 const AppError = require("../util/AppError");
 
 class AuthError extends AppError {
-    constructor(message = 'Authentication Failed', statusCode = 401, errorMessage) {
+    constructor(errorMessage = 'Authentication Failed', statusCode = 401) {
         super('AuthError', statusCode, errorMessage);
     }
 }

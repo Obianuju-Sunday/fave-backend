@@ -4,6 +4,7 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const validator = require('validator');
+const jwt = require('jsonwebtoken');
 const ValidationError = require('../errors/ValidationError');
 const AuthError = require('../errors/AuthError');
 
@@ -76,6 +77,7 @@ const register = async (req, res, next) => {
         await newUser.save();
 
         return res.status(201).json({
+            success: true,
             message: 'User registered successfully'
         });
 
@@ -87,6 +89,7 @@ const register = async (req, res, next) => {
 
 const login = async (req, res, next) => {
     try {
+        // Accept and extract email and password from request body
         const { email, password } = req.body;
 
         // Validate input fields
@@ -108,7 +111,7 @@ const login = async (req, res, next) => {
             throw new ValidationError('Invalid email format');
         }
 
-        // Find user by email
+        // Find user by email in database
         const user = await User.findOne({ email: sanitizedEmail }).select('+password');
         if (!user) {
             console.log('No user found with this email');
@@ -129,13 +132,27 @@ const login = async (req, res, next) => {
                 email: user.email
             },
             process.env.JWT_SECRET,
-            { 
-                expiresIn: process.env.JWT_EXPIRES_IN || '1h' 
+            {
+                expiresIn: process.env.JWT_EXPIRES_IN || '30m'
             }
         );
+
+        return res.status(200).json({
+            success: true,
+            message: 'Login successful',
+            data: {
+                token: jwtToken,
+                user: {
+                    id: user._id,
+                    name: user.name,
+                    email: user.email,
+                    phone: user.phone
+                }
+            }
+        });
     } catch (err) {
-    next(err);
-}
+        next(err);
+    }
 }
 
 module.exports = {
