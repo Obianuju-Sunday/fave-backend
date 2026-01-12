@@ -106,7 +106,8 @@ const login = async (req, res, next) => {
         }
 
         // Sanitize email input 
-        const sanitizedEmail = validator.normalizeEmail(email);
+        const sanitizedEmail = validator.normalizeEmail(email.trim());
+        const sanitizedPassword = password.trim();
 
         // Email validation
         if (!validator.isEmail(sanitizedEmail)) {
@@ -123,7 +124,7 @@ const login = async (req, res, next) => {
         }
 
         // compare user password
-        const isPasswordMatch = await bcrypt.compare(password, user.password);
+        const isPasswordMatch = await bcrypt.compare(sanitizedPassword, user.password);
         if (!isPasswordMatch) {
             if (process.env.NODE_ENV === 'development') {
                 console.log('Incorrect password provided');
@@ -139,7 +140,7 @@ const login = async (req, res, next) => {
             },
             process.env.JWT_SECRET,
             {
-                expiresIn: process.env.JWT_EXPIRES_IN || '30m'
+                expiresIn: process.env.JWT_EXPIRES_IN || '7h'
             }
         );
 
