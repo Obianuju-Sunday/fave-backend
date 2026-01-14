@@ -29,7 +29,7 @@ const protect = (req, res, next) => {
     } catch (err) {
 
         if (err.name === 'JsonWebTokenError') {
-            return next(new AuthError('Invalid or expired token.'));
+            return next(new AuthError('Invalid token.'));
         }
 
         if (err.name === 'TokenExpiredError') {

@@ -10,8 +10,9 @@ router.post('/register', register);
 router.post('/login', login);
 router.get('/test-protected', protect, (req, res) => {
     res.json({ 
+        success: true,
         message: 'You have accessed a protected route', 
-        user: req.user 
+        user: {email: req.user.email, id: req.user.id}
     });
 })
 
