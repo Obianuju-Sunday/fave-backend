@@ -7,6 +7,7 @@ const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const ValidationError = require('../errors/ValidationError');
 const AuthError = require('../errors/AuthError');
+const crypto = require('crypto');
 
 const register = async (req, res, next) => {
 
@@ -163,7 +164,28 @@ const login = async (req, res, next) => {
     }
 }
 
+const forgotPassword = async (req,res,next) => {
+    const { email } = req.body;
+
+    const sanitizedEmail = validator.normalizeEmail(email.trim());
+
+    if (!validator.isEmail(sanitizedEmail)) {
+        return next(new ValidationError('Invalid email format'));
+    }
+
+    const user = await User.findOne({ email: sanitizedEmail });
+
+    if (!user) {
+        if (process.env.NODE_ENV === 'development') {
+            console.log('No user found with this email for password reset');
+        }
+        return next(new AuthErrorError('We will send you an email to reset your password'));
+    }
+
+}
+
 module.exports = {
     register,
-    login
+    login,
+    forgotPassword
 }; 

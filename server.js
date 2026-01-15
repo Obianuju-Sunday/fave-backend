@@ -7,8 +7,8 @@ const mongoose = require('mongoose')
 const morgan = require('morgan')
 const dotenv = require('dotenv')
 const errorHandler = require('./middleware/errorHandler')
-const AuthRoute = require('./routes/auth') 
-const AppError = require('./util/AppError')
+const AuthRoute = require('./routes/auth')
+const AppError = require('./util/AppError');
 
 // CONFIGURATION
 dotenv.config()
@@ -23,14 +23,14 @@ db.once('open', () => {
 })
 // DATABASE ERROR HANDLING
 db.on('error', (err) => {
-    console.log(err); 
+    console.log(err);
 })
 
 // MIDDLEWARES
 const app = express()
 app.use(morgan('dev'))
 app.use(express.json())
-app.use(express.urlencoded({extended:true}))
+app.use(express.urlencoded({ extended: true })) 
 
 // REQUEST LOGGER FOR DEBUGGING
 // app.use((req, res, next) => {
@@ -46,7 +46,7 @@ app.use(express.urlencoded({extended:true}))
 
 // ROUTES
 app.use('/api/auth', AuthRoute)
- 
+
 // HANDLE UNHANDLED ROUTES
 app.all('*', (req, res, next) => {
     next(new AppError('AppError', 404, `Can't find ${req.originalUrl} on this server!`));
@@ -57,6 +57,6 @@ app.use(errorHandler)
 
 
 // SERVER
-app.listen(process.env.PORT, () =>{
+app.listen(process.env.PORT, () => {
     console.log(`Server is running on port ${process.env.PORT}`);
 })
