@@ -14,7 +14,7 @@ const protect = (req, res, next) => {
         }
 
         if (!token) {
-            return next(new AuthError('Access denied. No token provided.')); 
+            return next(new AuthError('Access denied. No token provided.'));
         }
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -28,6 +28,14 @@ const protect = (req, res, next) => {
 
     } catch (err) {
 
+        // Development mode logging for debugging
+        if (process.env.NODE_ENV === 'development') {
+            console.log('🐛 Error caught:', {
+                name: err.name,
+                message: err.message
+            });
+        }
+
         if (err.name === 'JsonWebTokenError') {
             return next(new AuthError('Invalid token.'));
         }
@@ -36,7 +44,7 @@ const protect = (req, res, next) => {
             return next(new AuthError('Token expired.'));
         }
 
-        if(err.name === 'NotBeforeError'){
+        if (err.name === 'NotBeforeError') {
             return next(new AuthError('Token not active yet.'))
         }
 
