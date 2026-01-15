@@ -164,22 +164,55 @@ const login = async (req, res, next) => {
     }
 }
 
-const forgotPassword = async (req,res,next) => {
-    const { email } = req.body;
+const forgotPassword = async (req, res, next) => {
 
-    const sanitizedEmail = validator.normalizeEmail(email.trim());
+    try {
+        const { email } = req.body;
 
-    if (!validator.isEmail(sanitizedEmail)) {
-        return next(new ValidationError('Invalid email format'));
-    }
+        const sanitizedEmail = validator.normalizeEmail(email.trim());
 
-    const user = await User.findOne({ email: sanitizedEmail });
-
-    if (!user) {
-        if (process.env.NODE_ENV === 'development') {
-            console.log('No user found with this email for password reset');
+        if (!validator.isEmail(sanitizedEmail)) {
+            return next(new ValidationError('Invalid email format'));
         }
-        return next(new AuthErrorError('We will send you an email to reset your password'));
+
+        const user = await User.findOne({ email: sanitizedEmail });
+
+        if (!user) {
+            if (process.env.NODE_ENV === 'development') {
+                console.log('No user found with this email for password reset');
+            }
+            return next(new AuthErrorError('We will send you an email to reset your password'));
+        }
+
+
+        // Generate password random bytes, convert to hex & hash
+
+        const randomBytes = crypto.randomBytes(32);
+        const resetToken = randomBytes.toString('hex')
+        const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+        const tokenExpiration = new Date(Date.now() + 10 * 60 * 1000);
+
+        // Store in database
+        user.passwordResetToken = hashedToken;
+        user.passwordResetExpires = tokenExpiration
+
+        await user.save();
+
+        const resetUrl = `${process.env.RESET_URL}/reset-password/${resetToken}`
+
+        await sendEmail(user.email, resetUrl)
+
+        res.status(200).json({
+            success: true,
+            message: 'Password reset email sent'
+        })
+    } catch (err) {
+        if (process.env.NODE_ENV === 'development') {
+            console.log(err)
+
+        }
+        next(err)
     }
 
 }
