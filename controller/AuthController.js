@@ -181,7 +181,7 @@ const forgotPassword = async (req, res, next) => {
             if (process.env.NODE_ENV === 'development') {
                 console.log('No user found with this email for password reset');
             }
-            return next(new AuthErrorError('We will send you an email to reset your password'));
+            return next(new AuthError('We will send you an email to reset your password'));
         }
 
 
@@ -199,9 +199,12 @@ const forgotPassword = async (req, res, next) => {
 
         await user.save();
 
-        const resetUrl = `${process.env.RESET_URL}/reset-password/${resetToken}`
+        // const resetUrl = `${process.env.RESET_URL}/reset-password/${resetToken}`
 
-        await sendEmail(user.email, resetUrl)
+        // await sendEmail(user.email, resetUrl)
+        if (process.env.NODE_ENV === 'development') {
+            console.log('Reset URL:', `http://localhost:3000/reset-password/${resetToken}`);
+        }
 
         res.status(200).json({
             success: true,
@@ -210,8 +213,9 @@ const forgotPassword = async (req, res, next) => {
     } catch (err) {
         if (process.env.NODE_ENV === 'development') {
             console.log(err)
-
         }
+        // user.passwordResetToken = '';
+        // user.passwordResetExpires = '';
         next(err)
     }
 

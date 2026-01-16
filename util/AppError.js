@@ -1,13 +1,10 @@
 // util/AppError.js
 
 class AppError extends Error {
-    constructor(errorType, statusCode, errorMessage ) {
+    constructor( statusCode, errorMessage, isOperational = true ) {
         super(errorMessage)
-        this.errorType = errorType || 'AppError'; 
-        this.statusCode = statusCode || 500;
-        
-        this.isOperational = true;
-
+        this.statusCode = statusCode;
+        this.isOperational = isOperational;
         Error.captureStackTrace(this, this.constructor)
     }
 }
